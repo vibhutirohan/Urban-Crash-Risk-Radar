@@ -11,8 +11,7 @@
     <img alt="Glue" src="https://img.shields.io/badge/Glue-ETL%20%26%20Catalog-6B46C1">
     <img alt="Athena" src="https://img.shields.io/badge/Athena-SQL%20&%20CTAS-2563EB">
     <img alt="Lambda" src="https://img.shields.io/badge/Lambda-APIs%20%26%20Ingest-FF9900?logo=awslambda&logoColor=white">
-    <img alt="SageMaker" src="https://img.shields.io/badge/SageMaker-Model%20Training-0E9F6E">
-    <img alt="Made with ❤️" src="https://img.shields.io/badge/Made%20with-❤️-E11D48">
+    <img alt="SageMaker" src="https://img.shields.io/badge/SageMaker-Model%20Training-0E9
   </p>
 
   <p>
@@ -70,22 +69,6 @@ Continuously ingest crash data for five U.S. cities, enrich with weather & time 
 - **Production-ish flow** — scheduled ingestion, partitioned Parquet, API endpoint, static site  
 - **Academy-friendly** — only core AWS; graceful fallbacks where services are limited
 
----
-
-<!-- Callout with quick links placeholders -->
-<div align="center">
-
-**Live Demo** · **API** · **Docs**
-
-<a href="#-problem--why-this-matters">Problem</a> •
-<a href="#-goal-one-line">Goal</a> •
-<a href="#%EF%B8%8F-pipeline-at-a-glance">Pipeline</a> •
-<a href="#%EF%B8%8F-cities">Cities</a> •
-<a href="#-what-makes-it-stand-out">Highlights</a>
-
-</div>
-
----
 
 <!-- Footer animation -->
 <p align="center">
