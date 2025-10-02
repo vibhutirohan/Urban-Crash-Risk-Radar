@@ -59,7 +59,7 @@ Continuously ingest crash data for five U.S. cities, enrich with weather & time 
 
 ## 🗺️ Cities
 **Memphis • Detroit • New York City • Boston • Los Angeles**  
-(Pluggable design — add more by dropping a new ingest Lambda + city config.)
+
 
 ---
 
