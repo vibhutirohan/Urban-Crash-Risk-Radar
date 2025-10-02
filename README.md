@@ -11,7 +11,7 @@
     <img alt="Glue" src="https://img.shields.io/badge/Glue-ETL%20%26%20Catalog-6B46C1">
     <img alt="Athena" src="https://img.shields.io/badge/Athena-SQL%20&%20CTAS-2563EB">
     <img alt="Lambda" src="https://img.shields.io/badge/Lambda-APIs%20%26%20Ingest-FF9900?logo=awslambda&logoColor=white">
-    <img alt="SageMaker" src="https://img.shields.io/badge/SageMaker-Model%20Training-0E9
+    <img alt="SageMaker" src="https://img.shields.io/badge/SageMaker-Model%20Training-0E9">
   </p>
 
   <p>
