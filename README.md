@@ -3,7 +3,7 @@
   <img src="https://user-images.githubusercontent.com/placeholder/urban-crash-radar-hero.gif" alt="Urban Crash Risk Radar" width="820">
   <h1>🚦 Urban Crash Risk Radar - 5 Major US Cities      
     (AWS End-to-End Data Engineering Project)</h1>
-  <p><strong>Authors:</strong> Rohan & Ellen</p>
+  <p><strong>Authors:</strong> Rohan Vibhuti & Ellen Martin</p>
 
   <!-- Badges -->
   <p>
