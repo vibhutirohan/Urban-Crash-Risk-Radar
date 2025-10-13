@@ -19,7 +19,7 @@
     <em>Memphis (TN) • Detroit (MI) • New York City (NY) • Boston (MA) • Los Angeles (CA)</em>
   </p>
 
-  <h3>“A multi-city lakehouse that ingests crash & weather data, engineers features, trains a predictive model, and serves hourly risk heatmaps on the web — using AWS only.”</h3>
+  <h3>“A multi-city lakehouse that ingests crash & weather data, engineers features, trains a predictive model on ~50 years of historical data, and serves yearly risk heatmaps on the web — using AWS only.”</h3>
 </div>
 
 ---
@@ -35,7 +35,7 @@ Cities pay a steep price for road crashes — in lives, in health, and in billio
 > We transform raw civic data into **hourly, cell-level risk** that leaders can act on.
 
 ## 🎯 Goal (One Line)
-Continuously ingest crash data for five U.S. cities, enrich with weather & time features, **predict crash risk per grid cell per hour**, and publish a **map-based heatmap** for cross-city comparison.
+Ingest historical crash data for five U.S. cities, enrich with weather & time features, **predict crash risk per grid cell for the next year**, and publish a **map-based heatmap** for cross-city comparison.
 
 ---
 
@@ -49,7 +49,7 @@ Continuously ingest crash data for five U.S. cities, enrich with weather & time 
 </p>
 
 ## ⚙️ Pipeline at a Glance
-- **Ingest**: City crash feeds + NOAA weather → **Amazon S3** (`raw/`) via **AWS Lambda** on **EventBridge** schedules  
+- **Ingest**: City crash feeds + NOAA weather → **Amazon S3** (`raw/`) via **AWS Lambda**   
 - **Process**: Clean & grid to 500–800m cells, rolling features → **AWS Glue** (PySpark) → **S3** (`silver/`, `gold/`)  
 - **Query/QA**: **Amazon Athena** (CTAS, partition pruning)  
 - **Model**: Binary risk model (XGBoost in **Amazon SageMaker** or Glue ML fallback) → JSONL/GeoJSON predictions  
@@ -65,10 +65,11 @@ Continuously ingest crash data for five U.S. cities, enrich with weather & time 
 ---
 
 ## ✨ What makes it stand out
-- **Multi-city, multi-tenant lakehouse** — `city` as a first-class partition across raw/silver/gold  
-- **Spatiotemporal features** — history windows, neighbor context, weather signals  
-- **Production-ish flow** — scheduled ingestion, partitioned Parquet, API endpoint, static site  
+- **Multi-city lakehouse** — `city` as a first-class partition across raw/silver/gold  
+- **Spatiotemporal features** — history windows, neighbor context, weather signals, time-of-day  
+- **Production-ish flow** — ingestion, partitioned Parquet, API endpoint, static site  
 - **Academy-friendly** — only core AWS; graceful fallbacks where services are limited
+- **Opportunities for Expansion** - expansion to more cities using the same pipeline, based on the same national dataset
 
 
 <!-- Footer animation -->
