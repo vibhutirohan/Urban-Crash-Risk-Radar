@@ -32,7 +32,7 @@
 ## 🧭 Problem → Why This Matters
 Cities pay a steep price for road crashes — in lives, in health, and in billions of dollars. Agencies need **early signals** of **where** and **when** risk is rising so they can target enforcement, redesign streets, and deploy resources before the next collision.
 
-> We transform raw civic data into **hourly, cell-level risk** that leaders can act on.
+> We transform raw civic data into **yearly, cell-level risk** that leaders can act on.
 
 ## 🎯 Goal (One Line)
 Ingest historical crash data for five U.S. cities, enrich with weather & time features, **predict crash risk per grid cell for the next year**, and publish a **map-based heatmap** for cross-city comparison.
