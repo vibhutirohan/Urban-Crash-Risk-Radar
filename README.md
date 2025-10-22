@@ -16,7 +16,7 @@
   </p>
 
   <p>
-    <em>Memphis (TN) • Detroit (MI) • New York City (NY) • Boston (MA) • Los Angeles (CA)</em>
+    <em>Memphis (TN) • Detroit (MI) • Dallas (TX) • Houston (TX) • Los Angeles (CA)</em>
   </p>
 
   <h3>“A multi-city lakehouse that ingests crash & weather data, engineers features, trains a predictive model on ~50 years of historical data, and serves yearly risk heatmaps on the web — using AWS only.”</h3>
@@ -49,17 +49,17 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 </p>
 
 ## ⚙️ Pipeline at a Glance
-- **Ingest**: City crash feeds + NOAA weather → **Amazon S3** (`raw/`) via **AWS Lambda**   
-- **Process**: Clean & grid to 500–800m cells, rolling features → **AWS Glue** (PySpark) → **S3** (`silver/`, `gold/`)  
-- **Query/QA**: **Amazon Athena** (CTAS, partition pruning)  
-- **Model**: Binary risk model (XGBoost in **Amazon SageMaker** or Glue ML fallback) → JSONL/GeoJSON predictions  
+- **Ingest**: Historic crash data (50 years nationwide) → **Amazon S3** (`raw/`) via **AWS Glue**   
+- **Process**: Clean & process as parquet  
+- **Query/QA**: **Amazon Athena** (batching)
+- **Model**: Predict risk for latitude and longitude (XGBoost in **Amazon SageMaker** or Glue ML fallback) → JSONL/GeoJSON predictions  
 - **Serve**: **Lambda Function URL** `/risk?city=&cell_id=` returns latest risk  
-- **Visualize**: Static site on **S3** (Leaflet / Mapbox GL) renders an **animated heatmap** per city
+- **Visualize**: Static site on **S3** (Leaflet) renders an **animated heatmap** per city, per user request, and displays model performance measures.
 
 ---
 
 ## 🗺️ Cities
-**Memphis • Detroit • New York City • Boston • Los Angeles**  
+**Memphis • Detroit • Dallas • Houston • Los Angeles**  
 
 - Historical Crash Data: https://www.nhtsa.gov/file-downloads?p=nhtsa/downloads/FARS/
 ---
