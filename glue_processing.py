@@ -8,20 +8,18 @@ from pyspark.sql.functions import input_file_name, regexp_extract, lit, col
 import zipfile
 from io import BytesIO
 import boto3
+import pandas as pd  
 
 ## --- CONFIGURATION ---
 S3_BUCKET_NAME = "crash-risk-radar-2025"
 RAW_ZIP_PATH = "rawData/NHTSA-zips/"
 PROCESSED_PATH = "processedData/"
-MIN_YEAR_TO_PROCESS = 2016  # <-- Year filter since schemas are not consistent before that point. 
+MIN_YEAR_TO_PROCESS = 2016
 
-# --- SCHEMA MAP ---
-#  "Standard Name" to a list of names found in the CSVs.
-# Since we're processing 2016+, these names should be very consistent.
+# --- UPDATED SCHEMA MAP ---
 SCHEMA_MAP = {
-    # Standard Name: [List of possible names, lowercase]
     'YEAR': ['year'],
-    'MONTH': ['month'],
+    'MONTH': ['month'], 
     'LGT_COND': ['lgt_cond'],
     'DAY': ['day'],
     'DAY_WEEK': ['day_week'],
@@ -35,12 +33,10 @@ SCHEMA_MAP = {
     'TYP_INT': ['typ_int'],
     'REL_ROAD': ['rel_road'],
     'LATITUDE': ['latitude', 'lat'], 
-    'LONGITUD': ['longitud', 'long', 'lon'], 
+    'LONGITUD': ['longitud', 'longitude', 'long', 'lon'], 
     'CITYNAME': ['cityname', 'city'], 
     'STATENAME': ['statename', 'state']
 }
-
-# The final list of columns we require, based on the map keys
 REQUIRED_COLUMNS = list(SCHEMA_MAP.keys())
 
 # --- Initialize Glue/Spark Context ---
@@ -55,7 +51,6 @@ job.init(args['JOB_NAME'], args)
 s3 = boto3.client('s3')
 paginator = s3.get_paginator('list_objects_v2')
 pages = paginator.paginate(Bucket=S3_BUCKET_NAME, Prefix=RAW_ZIP_PATH)
-
 list_of_dfs = []
 
 print(f"Starting processing for files in s3://{S3_BUCKET_NAME}/{RAW_ZIP_PATH}")
@@ -68,7 +63,6 @@ for page in pages:
         if s3_key.endswith('.zip'):
             
             try:
-                # Extract year from filename
                 year_match_df = spark.createDataFrame([("",)]).select(
                     regexp_extract(lit(s3_key), r'FARS(\d{4})NationalCSV\.zip', 1).alias("YEAR")
                 )
@@ -79,11 +73,9 @@ for page in pages:
                 
                 year = int(year_str)
                 
-                # --- NEW: Year Filter ---
                 if year < MIN_YEAR_TO_PROCESS:
                     print(f"Skipping {s3_key} (Year {year} < {MIN_YEAR_TO_PROCESS})")
                     continue
-                # --- END: Year Filter ---
 
                 print(f"Processing {s3_key} (Year {year})...")
                 zip_obj = s3.get_object(Bucket=S3_BUCKET_NAME, Key=s3_key)
@@ -94,62 +86,146 @@ for page in pages:
                     
                     if accident_file:
                         with z.open(accident_file) as f:
-                            # Read CSV content into a list, decode with ignore for errors
-                            csv_content_list = [f.read().decode('utf-8', 'ignore')]
-                            rdd = sc.parallelize(csv_content_list)
-                            df = spark.read \
-                                .option("header", "true") \
-                                .option("inferSchema", "true") \
-                                .csv(rdd)
+                            
+                            # CSV READING WITH DEBUGGING
+                            try:
+                                # Try multiple encodings if needed
+                                df_pandas = pd.read_csv(f, encoding='latin1', low_memory=False)
+                                print(f"  Pandas DataFrame shape: {df_pandas.shape}")
+                                print(f"  Pandas columns: {list(df_pandas.columns)[:10]}...")  # Show first 10 columns
+                                
+                            except Exception as read_err:
+                                print(f"Pandas read_csv error on {s3_key}: {read_err}. Trying UTF-8...")
+                                # Reset file pointer and try different encoding
+                                f.seek(0)
+                                try:
+                                    df_pandas = pd.read_csv(f, encoding='utf-8', low_memory=False, on_bad_lines='skip')
+                                    print(f"  Successfully read with UTF-8. Shape: {df_pandas.shape}")
+                                except Exception as utf8_err:
+                                    print(f"UTF-8 also failed: {utf8_err}. Skipping file.")
+                                    continue
+                            
+                            # Check if pandas actually read any rows
+                            if df_pandas.empty:
+                                print(f"Warning: 'accident.csv' in {s3_key} was read as empty by Pandas. Skipping.")
+                                continue
+                                
+                            # --- IMPROVED PANDAS TO SPARK CONVERSION ---
+                            # Handle potential data type issues
+                            try:
+                                # Convert problematic columns to string to avoid type conflicts
+                                for col_name in df_pandas.columns:
+                                    if df_pandas[col_name].dtype == 'object':
+                                        df_pandas[col_name] = df_pandas[col_name].astype(str)
+                                
+                                df = spark.createDataFrame(df_pandas)
+                                print(f"  Spark DataFrame created. Row count: {df.count()}")
+                                
+                            except Exception as spark_err:
+                                print(f"Spark DataFrame creation error: {spark_err}")
+                                print("  Trying with sample of data...")
+                                # Try with smaller sample if full conversion fails
+                                sample_df = df_pandas.head(1000)
+                                df = spark.createDataFrame(sample_df)
+                                print(f"  Sample Spark DataFrame created. Row count: {df.count()}")
                             
                             # Add the YEAR column
                             df = df.withColumn("YEAR", lit(int(year)))
                             
-                            # --- SCHEMA NORMALIZATION LOGIC ---
+                            # SCHEMA NORMALIZATION
                             current_cols_lower = {c.lower(): c for c in df.columns}
+                            print(f"  Available columns (lowercase): {list(current_cols_lower.keys())[:10]}...")
+                            
                             final_cols = []
                             
                             for standard_name in REQUIRED_COLUMNS:
                                 found = False
                                 possible_names = SCHEMA_MAP.get(standard_name, [])
                                 
-                                for alias in possible_names:
-                                    if alias in current_cols_lower:
-                                        original_col_name = current_cols_lower[alias]
-                                        final_cols.append(col(original_col_name).alias(standard_name))
-                                        found = True
-                                        break 
+                                # Check if standard name exists
+                                if standard_name.lower() in current_cols_lower:
+                                    original_col_name = current_cols_lower[standard_name.lower()]
+                                    final_cols.append(col(original_col_name).alias(standard_name))
+                                    found = True
+                                    print(f"    Found {standard_name} as {original_col_name}")
+                                else:
+                                    # Check aliases
+                                    for alias in possible_names:
+                                        if alias.lower() in current_cols_lower:
+                                            original_col_name = current_cols_lower[alias.lower()]
+                                            final_cols.append(col(original_col_name).alias(standard_name))
+                                            found = True
+                                            print(f"    Found {standard_name} as {original_col_name} (alias: {alias})")
+                                            break 
                                 
                                 if not found:
-                                    # Since we're using 2016+, these warnings should be minimal or gone
-                                    print(f"Warning: Column '{standard_name}' (or aliases) not found in {s3_key}. Adding as null.")
+                                    print(f"    Warning: Column '{standard_name}' not found. Adding as null.")
                                     final_cols.append(lit(None).alias(standard_name))
                             
-                            list_of_dfs.append(df.select(final_cols))
+                            # Apply column selection and check result
+                            normalized_df = df.select(final_cols)
+                            row_count_after_select = normalized_df.count()
+                            print(f"  After column selection: {row_count_after_select} rows")
+                            
+                            if row_count_after_select > 0:
+                                list_of_dfs.append(normalized_df)
+                                print(f"  Successfully added DataFrame with {row_count_after_select} rows")
+                            else:
+                                print(f"  ERROR: DataFrame became empty after column selection!")
+                                # Debug: show what the selection would look like
+                                print("  Debugging - showing sample of selected columns:")
+                                try:
+                                    normalized_df.show(5, truncate=False)
+                                except:
+                                    print("  Could not show sample - DataFrame is empty")
                             
                     else:
                         print(f"No 'accident.csv' found in {s3_key}. Skipping.")
                         
             except Exception as e:
                 print(f"Error processing {s3_key}: {e}")
+                import traceback
+                traceback.print_exc()
 
 print(f"Successfully processed {len(list_of_dfs)} files. Unioning all DataFrames...")
 
 if not list_of_dfs:
     raise Exception("No dataframes were processed. Check S3 path and file contents.")
 
+# --- Check individual DataFrames before union ---
+for i, df in enumerate(list_of_dfs):
+    count = df.count()
+    print(f"DataFrame {i}: {count} rows")
+
 from functools import reduce
 from pyspark.sql import DataFrame
-# Use unionByName to safely combine DataFrames even if column order is different
 final_df = reduce(DataFrame.unionByName, list_of_dfs)
 
-print(f"Final DataFrame has {final_df.count()} rows.")
+# Check after union but before dropna
+pre_dropna_count = final_df.count()
+print(f"After union, before dropna: {pre_dropna_count} rows")
 
-final_df.write \
-    .partitionBy("YEAR") \
-    .mode("overwrite") \
-    .parquet(f"s3://{S3_BUCKET_NAME}/{PROCESSED_PATH}")
+final_df = final_df.dropna(how='all')
 
-print(f"Successfully wrote combined Parquet data (2016-2023) to s3://{S3_BUCKET_NAME}/{PROCESSED_PATH}")
+row_count = final_df.count()
+print(f"Final DataFrame has {row_count} rows after dropna.")
+
+# --- DEBUG: Show sample of final data ---
+if row_count > 0:
+    print("Sample of final data:")
+    final_df.show(5, truncate=False)
+    
+    final_df.write \
+        .partitionBy("YEAR") \
+        .mode("overwrite") \
+        .parquet(f"s3://{S3_BUCKET_NAME}/{PROCESSED_PATH}")
+
+    print(f"Successfully wrote combined Parquet data (2016-2023) to s3://{S3_BUCKET_NAME}/{PROCESSED_PATH}")
+else:
+    print("Final DataFrame has 0 rows. No data will be written to S3.")
+    # Additional debugging
+    print("Debugging empty final DataFrame...")
+    print("Schema of final DataFrame:")
+    final_df.printSchema()
 
 job.commit()

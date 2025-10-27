@@ -18,7 +18,7 @@ import traceback
 ## 1. SETUP AND CONFIGURATION
 # ----------------------------------------------------
 # S3 bucket and paths
-S3_BUCKET_NAME = "CrashRiskRadar2025"
+S3_BUCKET_NAME = "crash-risk-radar-2025"
 # output path from  AWS Glue job
 PROCESSED_DATA_PATH = "processedData/"
 # final GeoJSON heatmap files will be saved
