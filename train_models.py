@@ -17,8 +17,8 @@ import traceback
 
 ## 1. SETUP AND CONFIGURATION
 # ----------------------------------------------------
-# Define  S3 bucket and paths
-S3_BUCKET_NAME = "CrashRiskRadar"
+# S3 bucket and paths
+S3_BUCKET_NAME = "CrashRiskRadar2025"
 # output path from  AWS Glue job
 PROCESSED_DATA_PATH = "processedData/"
 # final GeoJSON heatmap files will be saved
@@ -36,7 +36,7 @@ CITIES_TO_PROCESS = {
 }
 
 # Pre-generated Year Options ---
-YEAR_OPTIONS = [1, 5, 10, 20] # Will create 4 separate files: 1-year, 5-year, 10-year, 20-year
+YEAR_OPTIONS = [1, 5, 10, 20, 50] # Will create 4 separate files: 1-year, 5-year, 10-year, 20-year, 50-year
 
 # Initialize Boto3 S3 client
 s3 = boto3.client('s3')
