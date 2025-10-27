@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed #to download mul
 
 
 # --- CONFIGURATION ---
-S3_BUCKET_NAME = "CrashRiskRadar2025"  # Bucket Location
+S3_BUCKET_NAME = "crash-risk-radar-2025"  # Bucket Location
 S3_PREFIX = "rawData/NHTSA-zips/"      # Raw Zip Files (not yet unzipping!)
 START_YEAR = 1975
 END_YEAR = 2023
