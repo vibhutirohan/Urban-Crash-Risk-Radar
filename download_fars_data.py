@@ -10,6 +10,9 @@ import requests
 import boto3
 from io import BytesIO
 import logging
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed #to download multiple ZIP files at the same time
+
 
 # --- CONFIGURATION ---
 S3_BUCKET_NAME = "CrashRiskRadar2025"  # Replace with your actual S3 bucket name
@@ -21,6 +24,9 @@ BASE_URL = 'https://static.nhtsa.gov/nhtsa/downloads/FARS/{year}/National/FARS{y
 # --- SETUP ---
 # Setting up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Setting up max workers (parrallel downloads)
+MAX_WORKERS = 10
 
 # Initialize the S3 client from boto3
 s3_client = boto3.client('s3')
@@ -54,20 +60,29 @@ def download_and_upload_to_s3(year):
         return True
 
     except requests.exceptions.HTTPError as e:
-        # Catching errors for data scraping. 
-        logging.warning(f"Could not download data for year {year}. URL may be invalid. Error: {e}")
-        return False
+        if e.response.status_code == 404:
+            return f"⚠️ No data found for year {year} (404 Error). Skipping."
+        else:
+            return f"❌ HTTP Error for {year}: {e}"
     except Exception as e:
-        logging.error(f"An error occurred for year {year}: {e}")
-        return False
+        return f"❌ Failed to process {year}: {e}"
 
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
-    logging.info("Starting FARS data ingestion process...")
-    successful_uploads = 0
-    for year in range(START_YEAR, END_YEAR + 1): # loop through year range
-        if download_and_upload_to_s3(year):
-            successful_uploads += 1 # increase count of successful uploads
+    start_time = time.time()
+    print(f"Starting parallel download of NHTSA data from {START_YEAR} to {END_YEAR}...")
+    print(f"Using up to {MAX_WORKERS} parallel workers.")
 
-    logging.info(f"--- Ingestion Complete ---")
-    logging.info(f"Successfully uploaded {successful_uploads} ZIP files to s3://{S3_BUCKET_NAME}/{S3_PREFIX}")
+    years_to_process = list(range(START_YEAR, END_YEAR + 1))
+    
+    # ThreadPoolExecutor to manage parallel downloads
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = {executor.submit(download_and_upload_to_s3, year): year for year in years_to_process}
+        
+        for future in as_completed(futures):
+            result = future.result()
+            print(result)
+
+    end_time = time.time()
+    print("-" * 50)
+    print(f"All downloads complete in {end_time - start_time:.2f} seconds.")
