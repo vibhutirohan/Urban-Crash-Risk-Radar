@@ -16,7 +16,7 @@ RAW_ZIP_PATH = "rawData/NHTSA-zips/"
 PROCESSED_PATH = "processedData/"
 MIN_YEAR_TO_PROCESS = 2016
 
-# --- UPDATED SCHEMA MAP ---
+# --- SCHEMA MAP, accounts for alternate specifications ---
 SCHEMA_MAP = {
     'YEAR': ['year'],
     'MONTH': ['month'], 
@@ -73,7 +73,7 @@ for page in pages:
                 
                 year = int(year_str)
                 
-                if year < MIN_YEAR_TO_PROCESS:
+                if year < MIN_YEAR_TO_PROCESS: # we will only process 2016 onwards due to huge differences in schema
                     print(f"Skipping {s3_key} (Year {year} < {MIN_YEAR_TO_PROCESS})")
                     continue
 
