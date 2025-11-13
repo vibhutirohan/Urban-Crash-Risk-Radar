@@ -65,7 +65,7 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 ---
 
 ## ✨ What makes it stand out
-- **Multi-city lakehouse** — `city` as a first-class partition  
+- **Multi-city lakehouse** — partitioning by year and city
 - **Spatiotemporal features** — history windows, neighbor context, weather signals, time-of-day, road conditions
 - **Production-ish flow** — ingestion, partitioned Parquet, API endpoint, static site  
 - **Academy-friendly** — only core AWS; graceful fallbacks where services are limited
@@ -78,10 +78,14 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 2. Initiation of AWS EC2 instance (T4.small)
 3. [Python Script for parallelized, multi-thread ingestion of 50 years of zip data, run in EC2 instance](download_fars_data.py)
 4. ETL and Schema Normalization in AWS Glue, storage in S3 /processedData
+- extraction of accident.csv from rawData zips
+- data quality and consistency across years (handing null data and missing information)
+- formatting column names and selecting features for ML models
+- converting to Parquet format, partitioned on Year
 5. [PySpark processing script with thorough debugging for unzipping data, standardizing schema, data cleaning, and parquet formatting](glue_processing.py)
 6. XGBoost Machine Learning Model Training and Prediction, run in EC2 instance, storing model predictions in S3 Bucket.
 7. [Machine Learning Model Python Script](train_models.py)
-8. Static webpage hosting via S3 Bucket (HTML + tailwind.css)
+8. [Static webpage hosting via S3 Bucket (HTML + tailwind.css)](index.html)
 
 
 
