@@ -3,7 +3,7 @@
   <img src="https://user-images.githubusercontent.com/placeholder/urban-crash-radar-hero.gif" alt="Urban Crash Risk Radar" width="820">
   <h1>🚦 Urban Crash Risk Radar - 5 Major US Cities      
     (AWS End-to-End Data Engineering Project)</h1>
-  <p><strong>Authors:</strong> Rohan Vibhuti & Ellen Martin</p>
+  <p><strong>Authors:</strong> Rohan Vibhuti, Ellen Martin & Alima Aqsai</p>
 
   <!-- Badges -->
   <p>
@@ -19,7 +19,7 @@
     <em>Memphis (TN) • Detroit (MI) • Dallas (TX) • Houston (TX) • Los Angeles (CA)</em>
   </p>
 
-  <h3>“A multi-city lakehouse that ingests crash & weather data, engineers features, trains a predictive model on ~50 years of historical data, and serves yearly risk heatmaps on the web — using AWS only.”</h3>
+  <h3>“A multi-city lakehouse that ingests crash & weather data, engineers features, trains a predictive model on ~8 years of historical data, and serves yearly risk heatmaps on the web — using AWS only.”</h3>
 </div>
 
 ---
@@ -49,27 +49,40 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 </p>
 
 ## ⚙️ Pipeline at a Glance
-- **Ingest**: Historic crash data (50 years nationwide) → **Amazon S3** (`raw/`) via **AWS Glue**   
-- **Process**: Clean & process as parquet  
+- **Ingest**: Historic crash data (50 years nationwide) → **Amazon S3** (`raw/`) via **AWS EC2** and **Python**, using multi-thread, parallel processing for speedy ingestion in memory.
+- **Process**: Clean & process as parquet via **AWS Glue** → **Amazon S3** (`processed/`
 - **Query/QA**: **Amazon Athena** (batching)
-- **Model**: Predict risk for latitude and longitude (XGBoost in **Amazon SageMaker** or Glue ML fallback) → JSONL/GeoJSON predictions  
+- **Model**: Predict risk for latitude and longitude (XGBoost in **Amazon SageMaker**  → JSONL/GeoJSON predictions stored in **Amazon S3** (`predictions/`)
 - **Serve**: **Lambda Function URL** `/risk?city=&cell_id=` returns latest risk  
-- **Visualize**: Static site on **S3** (Leaflet) renders an **animated heatmap** per city, per user request, and displays model performance measures.
+- **Visualize**: Static site on **S3** (Leaflet.js) renders an **animated heatmap** per city, per user request, and displays model performance measures.
 
 ---
 
 ## 🗺️ Cities
 **Memphis • Detroit • Dallas • Houston • Los Angeles**  
 
-- Historical Crash Data: https://www.nhtsa.gov/file-downloads?p=nhtsa/downloads/FARS/
+- Public Historical Crash Data: https://www.nhtsa.gov/file-downloads?p=nhtsa/downloads/FARS/
 ---
 
 ## ✨ What makes it stand out
-- **Multi-city lakehouse** — `city` as a first-class partition across raw/silver/gold  
-- **Spatiotemporal features** — history windows, neighbor context, weather signals, time-of-day  
+- **Multi-city lakehouse** — `city` as a first-class partition  
+- **Spatiotemporal features** — history windows, neighbor context, weather signals, time-of-day, road conditions
 - **Production-ish flow** — ingestion, partitioned Parquet, API endpoint, static site  
 - **Academy-friendly** — only core AWS; graceful fallbacks where services are limited
-- **Opportunities for Expansion** - expansion to more cities using the same pipeline, based on the same national dataset
+- **Simple, user-friendly interface** - serving the necessities, without fluff or redundant features, enabling users to quickly retrieve relevant information
+- **Opportunities for Expansion** - opportunity to scale up production and permit users to specify other cities and states, for which real-time ML predictions can be generated. Opportunity for annual model updates with new data availability.
+
+---
+## Pipeline Stages
+1. AWS S3 Bucket creation (/rawData, /processedData, /scripts)
+2. Initiation of AWS EC2 instance (T4.small)
+3. ![Python Script for parallelized, multi-thread ingestion of 50 years of zip data, run in EC2 instance](download_fars_data.py)
+4. ETL and Schema Normalization in AWS Glue, storage in S3 /processedData
+5. ![PySpark processing script with thorough debugging for unzipping data, standardizing schema, data cleaning, and parquet formatting](glue_processing.py)
+6. XGBoost Machine Learning Model Training and Prediction, run in EC2 instance, storing model predictions in S3 Bucket.
+7. ![Machine Learning Model Python Script](train_models.py)
+8. Static webpage hosting via S3 Bucket (HTML + tailwind.css)
+- 
 
 
 <!-- Footer animation -->
