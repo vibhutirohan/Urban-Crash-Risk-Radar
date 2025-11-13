@@ -49,6 +49,7 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 </p>
 
 ## ⚙️ Pipeline at a Glance
+
 - **Ingest**: Historic crash data (50 years nationwide) → **Amazon S3** (`raw/`) via **AWS EC2** and **Python**, using multi-thread, parallel processing for speedy ingestion in memory.
 - **Process**: Clean & process as parquet via **AWS Glue** → **Amazon S3** (`processed/`
 - **Query/QA**: **Amazon Athena** (batching)
@@ -74,10 +75,11 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 
 ---
 ## Pipeline Stages
+![Cloud Architecture Diagram](cloud_architecture_diagram.png)
 1. AWS S3 Bucket creation (/rawData, /processedData, /scripts)
 2. Initiation of AWS EC2 instance (T4.small)
 3. [Python Script for parallelized, multi-thread ingestion of 50 years of zip data, run in EC2 instance](download_fars_data.py)
-4. ETL and Schema Normalization in AWS Glue, storage in S3 /processedData
+4. ETL and Schema Normalization in AWS Glue, storage in S3 /processedData, monitoring progress and logs using AWS CloudWatch
 - extraction of accident.csv from rawData zips
 - data quality and consistency across years (handing null data and missing information)
 - formatting column names and selecting features for ML models
