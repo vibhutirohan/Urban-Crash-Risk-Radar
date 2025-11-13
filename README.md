@@ -34,7 +34,7 @@ Cities pay a steep price for road crashes — in lives, in health, and in billio
 
 > We transform raw civic data into **yearly, cell-level risk** that leaders can act on.
 
-## 🎯 Goal (One Line)
+## 🎯 Goal 
 Ingest historical crash data for five U.S. cities, enrich with weather & time features, **predict crash risk per grid cell for the next year**, and publish a **map-based heatmap** for cross-city comparison.
 
 ---
@@ -76,13 +76,13 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 ## Pipeline Stages
 1. AWS S3 Bucket creation (/rawData, /processedData, /scripts)
 2. Initiation of AWS EC2 instance (T4.small)
-3. ![Python Script for parallelized, multi-thread ingestion of 50 years of zip data, run in EC2 instance](download_fars_data.py)
+3. [Python Script for parallelized, multi-thread ingestion of 50 years of zip data, run in EC2 instance](download_fars_data.py)
 4. ETL and Schema Normalization in AWS Glue, storage in S3 /processedData
-5. ![PySpark processing script with thorough debugging for unzipping data, standardizing schema, data cleaning, and parquet formatting](glue_processing.py)
+5. [PySpark processing script with thorough debugging for unzipping data, standardizing schema, data cleaning, and parquet formatting](glue_processing.py)
 6. XGBoost Machine Learning Model Training and Prediction, run in EC2 instance, storing model predictions in S3 Bucket.
-7. ![Machine Learning Model Python Script](train_models.py)
+7. [Machine Learning Model Python Script](train_models.py)
 8. Static webpage hosting via S3 Bucket (HTML + tailwind.css)
-- 
+
 
 
 <!-- Footer animation -->
