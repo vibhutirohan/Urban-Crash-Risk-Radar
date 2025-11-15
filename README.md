@@ -1,0 +1,78 @@
+<!-- Hero -->
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/placeholder/urban-crash-radar-hero.gif" alt="Urban Crash Risk Radar" width="820">
+  <h1>🚦 Urban Crash Risk Radar - 5 Major US Cities      
+    (AWS End-to-End Data Engineering Project)</h1>
+  <p><strong>Authors:</strong> Rohan Vibhuti & Ellen Martin</p>
+
+  <!-- Badges -->
+  <p>
+    <img alt="AWS Only" src="https://img.shields.io/badge/Cloud-AWS%20Only-f7941d?logo=amazonaws&logoColor=white">
+    <img alt="S3" src="https://img.shields.io/badge/S3-Lakehouse-569A31?logo=amazons3&logoColor=white">
+    <img alt="Glue" src="https://img.shields.io/badge/Glue-ETL%20%26%20Catalog-6B46C1">
+    <img alt="Athena" src="https://img.shields.io/badge/Athena-SQL%20&%20CTAS-2563EB">
+    <img alt="Lambda" src="https://img.shields.io/badge/Lambda-APIs%20%26%20Ingest-FF9900?logo=awslambda&logoColor=white">
+    <img alt="SageMaker" src="https://img.shields.io/badge/SageMaker-Model%20Training-0E9">
+  </p>
+
+  <p>
+    <em>Memphis (TN) • Detroit (MI) • Dallas (TX) • Houston (TX) • Los Angeles (CA)</em>
+  </p>
+
+  <h3>“A multi-city lakehouse that ingests crash & weather data, engineers features, trains a predictive model on ~50 years of historical data, and serves yearly risk heatmaps on the web — using AWS only.”</h3>
+</div>
+
+---
+
+<!-- Animated divider -->
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/placeholder/pulse-divider.gif" width="640" alt="divider">
+</p>
+
+## 🧭 Problem → Why This Matters
+Cities pay a steep price for road crashes — in lives, in health, and in billions of dollars. Agencies need **early signals** of **where** and **when** risk is rising so they can target enforcement, redesign streets, and deploy resources before the next collision.
+
+> We transform raw civic data into **yearly, cell-level risk** that leaders can act on.
+
+## 🎯 Goal (One Line)
+Ingest historical crash data for five U.S. cities, enrich with weather & time features, **predict crash risk per grid cell for the next year**, and publish a **map-based heatmap** for cross-city comparison.
+
+---
+
+<!-- Subtle animated icons row -->
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/placeholder/ingest.gif" width="90">
+  <img src="https://user-images.githubusercontent.com/placeholder/transform.gif" width="90">
+  <img src="https://user-images.githubusercontent.com/placeholder/train.gif" width="90">
+  <img src="https://user-images.githubusercontent.com/placeholder/serve.gif" width="90">
+  <img src="https://user-images.githubusercontent.com/placeholder/visualize.gif" width="90">
+</p>
+
+## ⚙️ Pipeline at a Glance
+- **Ingest**: Historic crash data (50 years nationwide) → **Amazon S3** (`raw/`) via **AWS Glue**   
+- **Process**: Clean & process as parquet  
+- **Query/QA**: **Amazon Athena** (batching)
+- **Model**: Predict risk for latitude and longitude (XGBoost in **Amazon SageMaker** or Glue ML fallback) → JSONL/GeoJSON predictions  
+- **Serve**: **Lambda Function URL** `/risk?city=&cell_id=` returns latest risk  
+- **Visualize**: Static site on **S3** (Leaflet) renders an **animated heatmap** per city, per user request, and displays model performance measures.
+
+---
+
+## 🗺️ Cities
+**Memphis • Detroit • Dallas • Houston • Los Angeles**  
+
+- Historical Crash Data: https://www.nhtsa.gov/file-downloads?p=nhtsa/downloads/FARS/
+---
+
+## ✨ What makes it stand out
+- **Multi-city lakehouse** — `city` as a first-class partition across raw/silver/gold  
+- **Spatiotemporal features** — history windows, neighbor context, weather signals, time-of-day  
+- **Production-ish flow** — ingestion, partitioned Parquet, API endpoint, static site  
+- **Academy-friendly** — only core AWS; graceful fallbacks where services are limited
+- **Opportunities for Expansion** - expansion to more cities using the same pipeline, based on the same national dataset
+
+
+<!-- Footer animation -->
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/placeholder/heatmap-loop.gif" width="760" alt="animated heatmap">
+</p>
