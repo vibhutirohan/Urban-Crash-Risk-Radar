@@ -10,8 +10,6 @@
     <img alt="AWS Only" src="https://img.shields.io/badge/Cloud-AWS%20Only-f7941d?logo=amazonaws&logoColor=white">
     <img alt="S3" src="https://img.shields.io/badge/S3-Lakehouse-569A31?logo=amazons3&logoColor=white">
     <img alt="Glue" src="https://img.shields.io/badge/Glue-ETL%20%26%20Catalog-6B46C1">
-    <img alt="Athena" src="https://img.shields.io/badge/Athena-SQL%20&%20CTAS-2563EB">
-    <img alt="Lambda" src="https://img.shields.io/badge/Lambda-APIs%20%26%20Ingest-FF9900?logo=awslambda&logoColor=white">
     <img alt="SageMaker" src="https://img.shields.io/badge/SageMaker-Model%20Training-0E9">
   </p>
 
@@ -55,7 +53,7 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 - **Query/QA**: **Amazon Athena** (batching)
 - **Model**: Predict risk for latitude and longitude (XGBoost in **Amazon SageMaker**  → JSONL/GeoJSON predictions stored in **Amazon S3** (`predictions/`)
 - **Serve**: **Lambda Function URL** `/risk?city=&cell_id=` returns latest risk  
-- **Visualize**: Static site on **S3** (Leaflet.js) renders an **animated heatmap** per city, per user request, and displays model performance measures.
+- **Visualize**: Static site on **Vercel** (Leaflet.js) renders an **animated heatmap** per city, per user request, and displays model performance measures.
 
 ---
 
@@ -75,7 +73,7 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 
 ---
 ## Pipeline Stages
-![Cloud Architecture Diagram](cloud_architecture_diagram.png)
+![Cloud Architecture Diagram](architecture.png)
 1. AWS S3 Bucket creation (/rawData, /processedData, /scripts)
 2. Initiation of AWS EC2 instance (T4.small)
 3. [Python Script for parallelized, multi-thread ingestion of 50 years of zip data, run in EC2 instance](download_fars_data.py)
@@ -87,7 +85,7 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 5. [PySpark processing script with thorough debugging for unzipping data, standardizing schema, data cleaning, and parquet formatting](glue_processing.py)
 6. XGBoost Machine Learning Model Training and Prediction, run in EC2 instance, storing model predictions in S3 Bucket.
 7. [Machine Learning Model Python Script](train_models.py)
-8. [Static webpage hosting via S3 Bucket (HTML + tailwind.css)](index.html)
+8. [Static webpage hosting using Vercel (HTML + tailwind.css)](index.html)
 
 
 
