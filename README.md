@@ -53,7 +53,7 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 - **Query/QA**: **Amazon Athena** (batching)
 - **Model**: Predict risk for latitude and longitude (XGBoost in **Amazon SageMaker**  → JSONL/GeoJSON predictions stored in **Amazon S3** (`predictions/`)
 - **Serve**: **Lambda Function URL** `/risk?city=&cell_id=` returns latest risk  
-- **Visualize**: Static site on **Vercel** (Leaflet.js) renders an **animated heatmap** per city, per user request, and displays model performance measures.
+- **Visualize**: Static site on **Vercel** (Leaflet.js) renders an **animated heatmap** per city, per user request, and displays model performance measures: https://urban-crash-risk-radar.vercel.app/
 
 ---
 
