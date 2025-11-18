@@ -11,7 +11,11 @@ import boto3
 import pandas as pd  
 
 ## --- CONFIGURATION ---
+<<<<<<< HEAD
 S3_BUCKET_NAME = "crash-risk-radar-2025"
+=======
+S3_BUCKET_NAME = "crash-risk-radar2025"
+>>>>>>> a0b0395 (Initial commit - Crash Risk Radar frontend)
 RAW_ZIP_PATH = "rawData/NHTSA-zips/"
 PROCESSED_PATH = "processedData/"
 MIN_YEAR_TO_PROCESS = 2016
