@@ -18,7 +18,11 @@ import traceback
 ## 1. SETUP AND CONFIGURATION
 # ----------------------------------------------------
 # S3 bucket and paths
+<<<<<<< HEAD
 S3_BUCKET_NAME = "CrashRiskRadar2025"
+=======
+S3_BUCKET_NAME = "crash-risk-radar-2025"
+>>>>>>> a0b039543a5248fe551e6cf83e7a01fa772c3904
 # output path from  AWS Glue job
 PROCESSED_DATA_PATH = "processedData/"
 # final GeoJSON heatmap files will be saved
@@ -36,7 +40,11 @@ CITIES_TO_PROCESS = {
 }
 
 # Pre-generated Year Options ---
+<<<<<<< HEAD
 YEAR_OPTIONS = [1, 5, 10, 20, 50] # Will create 4 separate files: 1-year, 5-year, 10-year, 20-year, 50-year
+=======
+YEAR_OPTIONS = [1, 3, 5, 8] 
+>>>>>>> a0b039543a5248fe551e6cf83e7a01fa772c3904
 
 # Initialize Boto3 S3 client
 s3 = boto3.client('s3')
@@ -57,8 +65,13 @@ class CyclicalEncoder(BaseEstimator, TransformerMixin):
             if col in self.max_vals:
                 max_val = self.max_vals[col]
                 col_data = pd.to_numeric(X[col], errors='coerce')
+<<<<<<< HEAD
                 X_transformed[f'{col}_sin'] = np.sin(2 * np.pi * col_data / max_val)
                 X_transformed[f'{col}_cos'] = np.cos(2 * np.pi * col_data / max_val)
+=======
+                X_transformed[f'{col}_sin'] = np.sin(2 * np.pi * col_data / max_val) #sin transformation for cyclical
+                X_transformed[f'{col}_cos'] = np.cos(2 * np.pi * col_data / max_val) #cos transformation for cyclical
+>>>>>>> a0b039543a5248fe551e6cf83e7a01fa772c3904
         return X_transformed.fillna(0)
     
     def get_feature_names_out(self, input_features=None):
@@ -83,6 +96,7 @@ CYCLICAL_FEATURES = ['MONTH', 'DAY', 'DAY_WEEK', 'HOUR']
 CATEGORICAL_FEATURES = [
     'LGT_COND', 'FUNC_SYS', 'RD_OWNER', 'RELJCT2', 'WEATHER', 
     'REL_ROAD', 'TWAY_ID', 'TYP_INT', 'ROUTE', 
+<<<<<<< HEAD
     'is_rush_hour', 'bad_weather_dark'
 ]
 CYCLICAL_MAX_VALS = {'MONTH': 12, 'DAY': 31, 'DAY_WEEK': 7, 'HOUR': 24}
@@ -92,6 +106,17 @@ preprocessor = ColumnTransformer(
     transformers=[
         ('cyclical', CyclicalEncoder(max_vals=CYCLICAL_MAX_VALS), CYCLICAL_FEATURES),
         ('categorical', OneHotEncoder(handle_unknown='ignore', sparse_output=False), CATEGORICAL_FEATURES)
+=======
+    'is_rush_hour', 'bad_weather_dark' #rush hour and bad weather are engineered features
+]
+CYCLICAL_MAX_VALS = {'MONTH': 12, 'DAY': 31, 'DAY_WEEK': 7, 'HOUR': 24}
+
+# Preprocessor pipeline
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('cyclical', CyclicalEncoder(max_vals=CYCLICAL_MAX_VALS), CYCLICAL_FEATURES), # cyclical for cyclical
+        ('categorical', OneHotEncoder(handle_unknown='ignore', sparse_output=False), CATEGORICAL_FEATURES) # one hot encoding for categorical
+>>>>>>> a0b039543a5248fe551e6cf83e7a01fa772c3904
     ],
     remainder='passthrough' # 'YEAR' will be passed through
 )
@@ -129,7 +154,11 @@ def load_and_filter_data(bucket, s3_path, years_to_use):
 
     # Convert to lowercase for consistent filtering
     object_cols = df_filtered.select_dtypes(include=['object']).columns
+<<<<<<< HEAD
     df_filtered[object_cols] = df_filtered[object_cols].apply(lambda x: x.str.lower())
+=======
+    df_filtered[object_cols] = df_filtered[object_cols].apply(lambda x: x.str.lower()) # to lower
+>>>>>>> a0b039543a5248fe551e6cf83e7a01fa772c3904
     print("Data loaded and cleaned.")
     return df_filtered # Return only the filtered dataframe
 
@@ -163,8 +192,13 @@ def generate_geojson_output(lat_preds, lon_preds, city_name, state_name, years, 
     
     # Create a GeoDataFrame from the predicted points
     gdf_points = gpd.GeoDataFrame(
+<<<<<<< HEAD
         geometry=gpd.points_from_xy(lon_preds, lat_preds),
         crs="EPSG:4326" # Set standard WGS84 coordinate system
+=======
+        geometry=gpd.points_from_xy(lon_preds, lat_preds), # gets points predicted (latitude and longitude)
+        crs="EPSG:4326" #  standard WGS84 coordinate system
+>>>>>>> a0b039543a5248fe551e6cf83e7a01fa772c3904
     )
     
     # Convert the GeoDataFrame to a GeoJSON string
@@ -215,12 +249,21 @@ def run_analysis_for_city(df, city_name, state_name, years_to_use):
     print("-" * 50)
 
     # Filter and prepare data for the chosen city and state
+<<<<<<< HEAD
     city_df = df[(df['CITYNAME'] == city_name.lower()) & (df['STATENAME'] == state_name.lower())].copy()
+=======
+    city_df = df[(df['CITYNAME'] == city_name.lower()) & (df['STATENAME'] == state_name.lower())].copy() #city, state filtering
+>>>>>>> a0b039543a5248fe551e6cf83e7a01fa772c3904
 
     if city_df.empty:
         print(f"Warning: No data found for '{city_name}, {state_name}'. Skipping.")
         return
+<<<<<<< HEAD
         
+=======
+    
+    # Run if there are at least 10 data points
+>>>>>>> a0b039543a5248fe551e6cf83e7a01fa772c3904
     if city_df.shape[0] < 10:
         print(f"Warning: Not enough data for '{city_name}, {state_name}' to train a model. Need at least 10 samples. Skipping.")
         return
@@ -233,8 +276,13 @@ def run_analysis_for_city(df, city_name, state_name, years_to_use):
     available_cols = [col for col in COLUMNS_TO_KEEP if col in city_df_eng.columns]
     city_df_final = city_df_eng[available_cols].dropna(subset=['LATITUDE', 'LONGITUD'])
 
+<<<<<<< HEAD
     # Split data into features and targets
     X = city_df_final.drop(columns=['LATITUDE', 'LONGITUD', 'CITYNAME', 'STATENAME'])
+=======
+    # Split data into features and targets (80% 20%)
+    X = city_df_final.drop(columns=['LATITUDE', 'LONGITUD', 'CITYNAME', 'STATENAME']) # DROP ALL IDENTIFYING VARIABLES FROM TRAINING SET!
+>>>>>>> a0b039543a5248fe551e6cf83e7a01fa772c3904
     y_lat = city_df_final['LATITUDE']
     y_lon = city_df_final['LONGITUD']
     
@@ -243,7 +291,11 @@ def run_analysis_for_city(df, city_name, state_name, years_to_use):
     )
     print(f"Data for {city_name} split: {X_train.shape[0]} training samples, {X_test.shape[0]} testing samples.")
 
+<<<<<<< HEAD
     # Define the model and create the full pipeline
+=======
+    #  XGBoost model pipeline for large number of features
+>>>>>>> a0b039543a5248fe551e6cf83e7a01fa772c3904
     model = xgb.XGBRegressor(n_estimators=100, random_state=42, n_jobs=-1, eval_metric='mae')
     base_pipeline = Pipeline(steps=[('preprocessor', preprocessor), ('regressor', model)])
 

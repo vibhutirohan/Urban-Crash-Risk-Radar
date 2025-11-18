@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crash Risk Radar</title>
+    
+    <!-- 1. Tailwind CSS for styling --><script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Leaflet.js for the map --><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+     
+    <!-- 3. Leaflet.heat plugin for the heatmap --><script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+    <style>
+        /* Set a specific height for the map container */
+        #map { 
+            height: 60vh; 
+            width: 100%;
+            border-radius: 0.5rem; /* 8px */
+            z-index: 10;
+        }
+        
+        /* Override default dark mode styles for Leaflet popups */
+        .leaflet-popup-content-wrapper {
+            background: #fff !important;
+            color: #333 !important;
+        }
+        .leaflet-popup-tip {
+            background: #fff !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">
+                Crash Risk Radar
+            </h1>
+            <p class="text-lg text-gray-600">Heatmap Predictions of Likely Road Accidents for 5 Major US Cities</p>
+            
+        </header>
+
+        <!-- --- About Section --- -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+            <h2 class="text-2xl font-semibold mb-3">How to Use This Tool</h2>
+            <ol class="list-decimal list-inside text-gray-700 space-y-1">
+                <li>This tool will allow you to use the <b>"Select City"</b> dropdown to choose one of the five available US cities. The map will automatically center on your selection.</li>
+                <li>Use the <b>"Select Data Range"</b> dropdown to choose the historical time period for the model (e.g., 1, 3, 5, or 8 years of data).</li>
+                <li>The map will update with a predictive heatmap showing where crashes are most likely to occur. The <b>"Model Performance"</b> box will show the statistics for the selected model.</li>
+            </ol>
+        </div>
+
+
+        <!-- Main Content Area --><div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Controls Panel --><div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 border-b border-gray-200 pb-2">Controls</h2>
+                
+                <!-- City Selector --><div class="mb-4">
+                    <label for="city-select" class="block text-sm font-medium text-gray-700 mb-2">Select City</label>
+                    <select id="city-select" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="los_angeles_california">Los Angeles, California</option>
+                        <option value="houston_texas">Houston, Texas</option>
+                        <option value="detroit_michigan">Detroit, Michigan</option>
+                        <option value="dallas_texas">Dallas, Texas</option>
+                        <option value="memphis_tennessee">Memphis, Tennessee</option>
+                    </select>
+                </div>
+
+                <!-- Year Selector --><div class="mb-6">
+                    <label for="year-select" class="block text-sm font-medium text-gray-700 mb-2">Select Data Range (Years)</label>
+                    <select id="year-select" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="1"> 1 Year (2023)</option>
+                        <option value="3"> 3 Years (2021-2023)</option>
+                        <option value="5"> 5 Years (2019-2023)</option>
+                        <option value="8">Full Range (2016-2023)</option>
+                    </select>
+                </div>
+                
+                <!-- Stats Box --><h3 class="text-xl font-semibold mb-3">Model Performance</h3>
+                <div id="stats-box" class="bg-gray-100 p-4 rounded-md text-sm">
+                    <!-- Stats will be loaded here by JavaScript --><p class="text-gray-500">Loading stats...</p>
+                </div>
+            </div>
+    
+            <!-- Map Panel --><div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4">Predicted Crash Hotspots</h2>
+                <div id="map"></div>
+            </div>
+
+        <!-- --- Modelling --- -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6 lg:col-span-3">
+            <h2 class="text-2xl font-semibold mb-3">About the Models</h2>
+            <p class="text-gray-700 space-y-2">
+                This tool uses machine learning to predict the geographic coordinates (latitude and longitude) of potential car crashes. The models are trained on historical data (2016-2023) from the
+                <a href="https://www.nhtsa.gov/research-data/fatality-analysis-reporting-system-fars" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 hover:underline"><strong class="font-medium">NHTSA Fatality Analysis Reporting System (FARS)</strong></a>.
+                <br>
+                <br>
+                For each city and data range, two separate <strong class="font-medium">XGBoost Regressor</strong> models are trained: one to predict latitude and one to predict longitude. The features used for prediction include time of day, day of the week, weather, light conditions, and road type, as well as some engineered features that are a combination of these. The heatmaps represent the density of these predicted locations from a test dataset.
+                <br>
+                <br>
+                MAE (Mean Absolute Error) measures the average physical difference between the model's predicted latitude/longitude and the actual location. Since 1 degree of latitude is approximately 69 miles, an MAE of 0.03 corresponds to an error of around 2 miles. Depending on the city, predictions of road incident locations may be better or worse when using a larger number of years of data
+            </p>
+        </div>
+        <!-- This div closes the main grid -->
+    </div>
+    
+    <!-- --- NEW: Author Credits Footer --- -->
+    <footer class="text-center mt-8 text-gray-500 text-sm">
+        <p> 2025 Data Engineering Project by Team 01</p>
+    </footer>
+
+    <script>
+        // --- CONFIGURATION ---
+        const S3_BUCKET_URL = "https://crash-risk-radar-2025.s3.amazonaws.com";
+        
+        const S3_GEOJSON_PATH = "output-GeoJSON";
+        const S3_STATS_PATH = "output-stats";
+
+        // Global variables for the map and layer
+        let map;
+        let heatmapLayer;
+
+        // --- City center coordinates ---
+        const CITY_CENTERS = {
+            "los_angeles_california": [34.0522, -118.2437],
+            "houston_texas": [29.7604, -95.3698],
+            "detroit_michigan": [42.3314, -83.0458],
+            "dallas_texas": [32.7767, -96.7970],
+            "memphis_tennessee": [35.1495, -90.0490]
+        };
+
+        // --- MAP INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Initialize the Leaflet map, zoomed in closer
+            map = L.map('map').setView([34.0522, -118.2437], 11); // Default to Los Angeles, zoom 11
+
+            // 2. Add the base map tiles (OpenStreetMap theme)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // 3. Get references to dropdowns
+            const citySelect = document.getElementById('city-select');
+            const yearSelect = document.getElementById('year-select');
+
+            // 4. Add event listeners to update map on change
+            citySelect.addEventListener('change', updateMap);
+            yearSelect.addEventListener('change', updateMap);
+
+            // 5. Load the initial map data
+            updateMap();
+        });
+
+        // --- CORE FUNCTIONS ---
+
+        /**
+         * Main function to fetch data and update the map and stats
+         */
+        async function updateMap() {
+            const citySelect = document.getElementById('city-select');
+            const yearSelect = document.getElementById('year-select');
+            
+            // 1. Get current values
+            const cityValue = citySelect.value; // e.g., "los_angeles_california"
+            const years = yearSelect.value;       // e.g., "3"
+            
+            // --- THIS IS THE FIX FOR THE LOS ANGELES BUG ---
+            // const [city, state] = cityValue.split('_'); // This was the bug
+            
+            // 2. Construct the file names
+            // We use cityValue directly, which is already formatted correctly
+            const geojsonFilename = `${cityValue}_${years}_years_heatmap.geojson`;
+            const statsFilename = `${cityValue}_${years}_years_stats.json`;
+            
+            // 3. Construct the full URLs
+            const geojsonUrl = `${S3_BUCKET_URL}/${S3_GEOJSON_PATH}/${geojsonFilename}`;
+            const statsUrl = `${S3_BUCKET_URL}/${S3_STATS_PATH}/${statsFilename}`;
+            
+            // 4. Show loading state
+            updateStatsUI({ loading: true });
+            
+            // 5. Fly map to the selected city's center
+            const centerCoords = CITY_CENTERS[cityValue] || [34.0522, -118.2437];
+            map.flyTo(centerCoords, 11); // Fly to the city center at zoom 11
+
+            try {
+                // 6. Fetch both files in parallel
+                const [geoResponse, statsResponse] = await Promise.all([
+                    fetch(geojsonUrl),
+                    fetch(statsUrl)
+                ]);
+
+                if (!geoResponse.ok || !statsResponse.ok) {
+                    throw new Error('Data not found for this selection.');
+                }
+
+                const geojson = await geoResponse.json();
+                const stats = await statsResponse.json();
+
+                // 7. Update the UI
+                updateHeatmap(geojson);
+                updateStatsUI(stats);
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                updateStatsUI({ error: error.message });
+                // Clear the map on error
+                if (heatmapLayer) {
+                    map.removeLayer(heatmapLayer);
+                }
+            }
+        }
+
+        /**
+         * Clears the old heatmap and draws a new one
+         */
+        function updateHeatmap(geojson) {
+            // 1. Remove the old layer if it exists
+            if (heatmapLayer) {
+                map.removeLayer(heatmapLayer);
+            }
+
+            // 2. Check if we have data
+            if (!geojson || !geojson.features || geojson.features.length === 0) {
+                console.warn("No heatmap data to display.");
+                return;
+            }
+
+            // 3. Format data for the heatmap
+            // Leaflet.heat expects [lat, lon, intensity]
+            // GeoJSON coordinates are [lon, lat]
+            const heatData = geojson.features.map(feature => {
+                const [lon, lat] = feature.geometry.coordinates;
+                // Increased intensity to 1.0 for more opacity
+                return [lat, lon, 1.0]; // [latitude, longitude, intensity]
+            });
+
+            // 4. Create the new heatmap layer
+            heatmapLayer = L.heatLayer(heatData, {
+                radius: 12, // Small radius for concentrated spots
+                blur: 8,   // Small blur for sharper spots
+                maxZoom: 18,
+                minOpacity: 0.4, // INCREASED: from 0.3 for more base visibility
+                max: 1.0, // Keeps intensity consistent on zoom
+                gradient: { 0.2: 'blue', 0.5: 'yellow', 0.8: 'red' } // CHANGED: Brighter, more traditional gradient
+            }).addTo(map);
+
+            // 5. We no longer fit the map to the data bounds
+        }
+
+        /**
+         * Updates the stats box with new data
+         */
+        function updateStatsUI(stats) {
+            const statsBox = document.getElementById('stats-box');
+            let content = '';
+
+            if (stats.loading) {
+                content = '<p class="text-gray-500">Loading...</p>';
+            } else if (stats.error) {
+                content = `<p class="text-red-500">Error: ${stats.error}</p>`;
+            } else {
+                content = `
+                    <ul class="space-y-2">
+                        <li><strong>Data Years Used:</strong> ${stats.data_years_used}</li>
+                        <li><strong>Total Samples (City):</strong> ${stats.total_samples_for_city.toLocaleString()}</li>
+                        <li><strong>Training Samples:</strong> ${stats.training_samples.toLocaleString()}</li>
+                        <li><strong>Testing Samples:</strong> ${stats.testing_samples.toLocaleString()}</li>
+                        <li class="pt-2 mt-2 border-t border-gray-200">
+                            <strong>Latitude MAE:</strong> ${stats.latitude_mae_degrees.toFixed(5)}
+                        </li>
+                        <li>
+                            <strong>Longitude MAE:</strong> ${stats.longitude_mae_degrees.toFixed(5)}
+                        </li>
+                    </ul>
+                `;
+            }
+
+            statsBox.innerHTML = content;
+        }
+    </script>
+</body>
+</html>
