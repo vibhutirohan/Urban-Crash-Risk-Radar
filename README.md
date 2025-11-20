@@ -1,7 +1,7 @@
 <!-- Hero -->
 <div align="center">
   <img src="https://user-images.githubusercontent.com/placeholder/urban-crash-radar-hero.gif" alt="Urban Crash Risk Radar" width="820">
-  <h1>🚦 Urban Crash Risk Radar - 5 Major US Cities      
+  <h1>🚦 Urban Crash Risk Radar - 5 Major US Cities  (Alternate UI)    
     (AWS End-to-End Data Engineering Project)</h1>
   <p><strong>Authors:</strong> Rohan Vibhuti, Ellen Martin & Alima Aqsai</p>
 
@@ -50,7 +50,7 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 - **Ingest**: Historic crash data (50 years nationwide) → **Amazon S3** (`raw/`) via **AWS EC2** and **Python**, using multi-thread, parallel processing for speedy ingestion in memory.
 - **Process**: Clean & process as parquet via **AWS Glue** → **Amazon S3** (`processed/`
 - **Model**: Predict risk for latitude and longitude (XGBoost)
-- **Visualize**: Static site on **Vercel** (Leaflet.js) renders an **animated heatmap** per city, per user request, and displays model performance measures: https://urban-crash-risk-radar.vercel.app/
+- **Visualize**: Static site on **S3** rendering an **animated heatmap** per city, per user request, and displays model performance measures: https://crash-risk-radar-2025.s3.us-east-1.amazonaws.com/index.html
 
 ---
 
