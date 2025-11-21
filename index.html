@@ -76,6 +76,31 @@
         .leaflet-popup-tip {
             background: rgba(255, 255, 255, 0.9) !important;
         }
+
+        /* Mobile Transitions */
+        .mobile-panel-content {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 2000px;
+            /* Arbitrary large value for expanded state */
+            opacity: 1;
+        }
+
+        .mobile-panel-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Rotate chevron when collapsed */
+        .chevron {
+            transition: transform 0.3s ease;
+        }
+
+        .collapsed .chevron {
+            transform: rotate(-90deg);
+        }
     </style>
 </head>
 
@@ -86,83 +111,103 @@
 
     <!-- UI Overlay Container -->
     <!-- pointer-events-none allows clicking through to the map where there are no UI elements -->
-    <div class="absolute inset-0 z-10 pointer-events-none flex flex-col p-4 md:p-6 h-full">
+    <div class="absolute inset-0 z-10 pointer-events-none flex flex-col p-4 md:p-6 h-full overflow-hidden">
 
         <!-- Top Bar: Header -->
         <header
-            class="pointer-events-auto self-center glass-panel rounded-full px-8 py-3 mb-6 flex items-center space-x-4 animate-fade-in-down">
-            <div class="bg-blue-600 text-white p-2 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+            class="pointer-events-auto self-center glass-panel rounded-full px-4 py-2 md:px-8 md:py-3 mb-4 md:mb-6 flex items-center space-x-3 md:space-x-4 animate-fade-in-down shrink-0 max-w-full">
+            <div class="bg-blue-600 text-white p-1.5 md:p-2 rounded-full shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0121 18.382V7.618a1 1 0 01-.553-.894L15 7m0 13V7" />
                 </svg>
             </div>
-            <div>
-                <h1 class="text-xl font-bold text-gray-900 tracking-tight">Crash Risk Radar</h1>
-                <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Predictive Analytics System</p>
+            <div class="overflow-hidden">
+                <h1 class="text-sm md:text-xl font-bold text-gray-900 tracking-tight truncate">Crash Risk Radar</h1>
+                <p class="text-[10px] md:text-xs text-gray-500 font-medium uppercase tracking-wider truncate">Predictive
+                    Analytics System</p>
             </div>
         </header>
 
         <!-- Main Content Grid -->
-        <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 min-h-0">
+        <div
+            class="flex-1 flex flex-col md:grid md:grid-cols-12 gap-4 md:gap-6 min-h-0 overflow-y-auto md:overflow-visible pointer-events-none">
 
             <!-- Left Panel: Controls (Floating) -->
-            <div class="md:col-span-3 flex flex-col justify-start pointer-events-none">
+            <div class="md:col-span-3 flex flex-col justify-start pointer-events-auto md:pointer-events-none shrink-0">
                 <div
-                    class="glass-panel rounded-3xl p-6 pointer-events-auto space-y-6 transform transition-all hover:scale-[1.02] duration-300">
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-800 mb-1">Location</h2>
-                        <p class="text-sm text-gray-500 mb-4">Select a city to analyze</p>
-                        <div class="relative">
-                            <select id="city-select"
-                                class="w-full bg-white/50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3 appearance-none cursor-pointer hover:bg-white/80 transition-colors">
-                                <option value="los_angeles_california">Los Angeles, CA</option>
-                                <option value="houston_texas">Houston, TX</option>
-                                <option value="detroit_michigan">Detroit, MI</option>
-                                <option value="dallas_texas">Dallas, TX</option>
-                                <option value="memphis_tennessee">Memphis, TN</option>
-                            </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20">
-                                    <path
-                                        d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                </svg>
-                            </div>
-                        </div>
+                    class="glass-panel rounded-2xl md:rounded-3xl pointer-events-auto transform transition-all hover:scale-[1.02] duration-300 overflow-hidden">
+
+                    <!-- Mobile Toggle Header -->
+                    <div class="md:hidden flex items-center justify-between p-4 cursor-pointer"
+                        onclick="togglePanel('controls-content', this)">
+                        <h2 class="text-sm font-semibold text-gray-800">Settings</h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 chevron" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </div>
 
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-800 mb-1">Timeframe</h2>
-                        <p class="text-sm text-gray-500 mb-4">Historical data range</p>
-                        <div class="relative">
-                            <select id="year-select"
-                                class="w-full bg-white/50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3 appearance-none cursor-pointer hover:bg-white/80 transition-colors">
-                                <option value="1">Last 1 Year (2023)</option>
-                                <option value="3">Last 3 Years (2021-2023)</option>
-                                <option value="5">Last 5 Years (2019-2023)</option>
-                                <option value="8">Full Range (2016-2023)</option>
-                            </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20">
-                                    <path
-                                        d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                </svg>
+                    <!-- Panel Content -->
+                    <div id="controls-content"
+                        class="mobile-panel-content p-4 md:p-6 pt-0 md:pt-6 space-y-4 md:space-y-6">
+                        <div>
+                            <h2 class="hidden md:block text-lg font-semibold text-gray-800 mb-1">Location</h2>
+                            <p class="hidden md:block text-sm text-gray-500 mb-4">Select a city to analyze</p>
+                            <label class="block md:hidden text-xs font-medium text-gray-500 mb-1">City</label>
+                            <div class="relative">
+                                <select id="city-select"
+                                    class="w-full bg-white/50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-2.5 md:p-3 appearance-none cursor-pointer hover:bg-white/80 transition-colors">
+                                    <option value="los_angeles_california">Los Angeles, CA</option>
+                                    <option value="houston_texas">Houston, TX</option>
+                                    <option value="detroit_michigan">Detroit, MI</option>
+                                    <option value="dallas_texas">Dallas, TX</option>
+                                    <option value="memphis_tennessee">Memphis, TN</option>
+                                </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20">
+                                        <path
+                                            d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="pt-4 border-t border-gray-200/50">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-gray-600">Risk of Car Crashes</span>
-                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">High</span>
+                        <div>
+                            <h2 class="hidden md:block text-lg font-semibold text-gray-800 mb-1">Timeframe</h2>
+                            <p class="hidden md:block text-sm text-gray-500 mb-4">Historical data range</p>
+                            <label class="block md:hidden text-xs font-medium text-gray-500 mb-1">Timeframe</label>
+                            <div class="relative">
+                                <select id="year-select"
+                                    class="w-full bg-white/50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-2.5 md:p-3 appearance-none cursor-pointer hover:bg-white/80 transition-colors">
+                                    <option value="1">Last 1 Year (2023)</option>
+                                    <option value="3">Last 3 Years (2021-2023)</option>
+                                    <option value="5">Last 5 Years (2019-2023)</option>
+                                    <option value="8">Full Range (2016-2023)</option>
+                                </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20">
+                                        <path
+                                            d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full" style="width: 75%">
+
+                        <div class="pt-4 border-t border-gray-200/50">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-600">Risk of Car Crashes</span>
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">High</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full"
+                                    style="width: 75%">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -170,39 +215,61 @@
             </div>
 
             <!-- Center Spacer (Empty to show map) -->
-            <div class="md:col-span-6"></div>
+            <div class="flex-1 md:col-span-6 min-h-[20vh]"></div>
 
             <!-- Right Panel: Stats (Floating) -->
-            <div class="md:col-span-3 flex flex-col justify-start pointer-events-none">
-                <div
-                    class="glass-panel rounded-3xl p-6 pointer-events-auto h-auto max-h-[80vh] overflow-y-auto custom-scrollbar">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        Model Performance
-                    </h2>
+            <div
+                class="md:col-span-3 flex flex-col justify-end md:justify-start pointer-events-auto md:pointer-events-none shrink-0">
+                <div class="glass-panel rounded-2xl md:rounded-3xl pointer-events-auto overflow-hidden">
 
-                    <div id="stats-box" class="space-y-4">
-                        <!-- Loading State Placeholder -->
-                        <div class="animate-pulse space-y-3">
-                            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-                            <div class="h-20 bg-gray-200 rounded w-full"></div>
-                        </div>
+                    <!-- Mobile Toggle Header -->
+                    <div class="md:hidden flex items-center justify-between p-4 cursor-pointer"
+                        onclick="togglePanel('stats-content', this)">
+                        <h2 class="text-sm font-semibold text-gray-800 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-blue-600" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            Model Performance
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 chevron" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </div>
 
-                    <div class="mt-6 pt-6 border-t border-gray-200/50">
-                        <h3 class="text-sm font-semibold text-gray-700 mb-2">About the Model</h3>
-                        <p class="text-xs text-gray-500 leading-relaxed">
-                            Predicts crash coordinates using XGBoost Regressors trained on NHTSA FARS data (2016-2023).
-                            Features include weather, light conditions, road type, etc...
-                        </p>
-                        <div class="mt-4 flex items-center space-x-2">
-                            <span class="h-2 w-2 rounded-full bg-blue-500"></span>
-                            <span class="text-xs text-gray-400">Model v2.1.0</span>
+                    <div id="stats-content"
+                        class="mobile-panel-content collapsed md:!max-h-full md:!opacity-100 md:!block p-4 md:p-6 pt-0 md:pt-6 h-auto max-h-[40vh] md:max-h-[80vh] overflow-y-auto custom-scrollbar">
+                        <h2 class="hidden md:flex text-lg font-semibold text-gray-800 mb-4 items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            Model Performance
+                        </h2>
+
+                        <div id="stats-box" class="space-y-4">
+                            <!-- Loading State Placeholder -->
+                            <div class="animate-pulse space-y-3">
+                                <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                                <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                                <div class="h-20 bg-gray-200 rounded w-full"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-6 border-t border-gray-200/50">
+                            <h3 class="text-sm font-semibold text-gray-700 mb-2">About the Model</h3>
+                            <p class="text-xs text-gray-500 leading-relaxed">
+                                Predicts crash coordinates using XGBoost Regressors trained on NHTSA FARS data
+                                (2016-2023).
+                                Features include weather, light conditions, road type, etc...
+                            </p>
+                            <div class="mt-4 flex items-center space-x-2">
+                                <span class="h-2 w-2 rounded-full bg-blue-500"></span>
+                                <span class="text-xs text-gray-400">Model v2.1.0</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -210,15 +277,33 @@
         </div>
 
         <!-- Bottom Bar: Footer/Credits -->
-        <footer class="pointer-events-auto mt-auto self-center">
-            <div class="glass-panel rounded-full px-6 py-2 text-xs text-gray-500 font-medium">
-                Team 01 &bull; Fall 2025 Data Engineering Project (Rohan Vibhuti, Ellen Martin & Alima Aqsai)
+        <footer class="pointer-events-auto mt-auto self-center shrink-0 pt-2">
+            <div
+                class="glass-panel rounded-full px-4 py-1.5 md:px-6 md:py-2 text-[10px] md:text-xs text-gray-500 font-medium text-center">
+                Team 01 &bull; Fall 2025 Data Engineering Project
             </div>
         </footer>
 
     </div>
 
     <script>
+        // --- UI INTERACTION ---
+        function togglePanel(contentId, headerElement) {
+            // Only works on mobile where the header is visible/clickable
+            if (window.innerWidth >= 768) return;
+
+            const content = document.getElementById(contentId);
+            const isCollapsed = content.classList.contains('collapsed');
+
+            if (isCollapsed) {
+                content.classList.remove('collapsed');
+                headerElement.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                headerElement.classList.add('collapsed');
+            }
+        }
+
         // --- CONFIGURATION ---
         const S3_BUCKET_URL = "https://crash-risk-radar-2025.s3.amazonaws.com";
         const S3_GEOJSON_PATH = "output-GeoJSON";
