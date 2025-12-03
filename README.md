@@ -71,15 +71,16 @@ Ingest historical crash data for five U.S. cities, enrich with weather & time fe
 
 ---
 ## Pipeline Stages
+For more detailed pipeline architecture and feature selection, please refer to our technical report. 
 ![Cloud Architecture Diagram](architecture.png)
 1. AWS S3 Bucket creation (/rawData, /processedData, /scripts)
 2. Initiation of AWS EC2 instance (T4.small)
-3. [Python Script for parallelized, multi-thread ingestion of 50 years of zip data, run in EC2 instance](download_fars_data.py)
+3. [Python Script for parallelized, multi-thread ingestion of 50 years of zip data, run in EC2 instance](download_fars_data.py). We used a parallel, multi-threaded script given the large number of data files downloaded, to ensure speedy ingestion. 
 4. ETL and Schema Normalization in AWS Glue, storage in S3 /processedData, monitoring progress and logs using AWS CloudWatch
 - extraction of accident.csv from rawData zips
 - data quality and consistency across years (handing null data and missing information)
 - formatting column names and selecting features for ML models
-- converting to Parquet format, partitioned on Year
+- converting to Parquet format, partitioned on Year to allow users to specify specific date ranges
 5. [PySpark processing script with thorough debugging for unzipping data, standardizing schema, data cleaning, and parquet formatting](glue_processing.py)
 6. XGBoost Machine Learning Model Training and Prediction, run in EC2 instance, storing model predictions in S3 Bucket.
 7. [Machine Learning Model Python Script](train_models.py)
